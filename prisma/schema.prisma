@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Study {
+  id            Int            @id @default(autoincrement())
+  name          String
+  description   String?
+  background    String?
+  passwordHash  String
+  creatorNick   String
+  points        Int            @default(0)
+  createdAt     DateTime       @default(now())
+  habits        Habit[]
+  emojis        Emoji[]
+  focusSessions FocusSession[]
+}
+
+model Habit {
+  id        Int           @id @default(autoincrement())
+  studyId   Int
+  name      String
+  isActive  Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  study     Study         @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  records   HabitRecord[]
+}
+
+model HabitRecord {
+  id         Int      @id @default(autoincrement())
+  habitId    Int
+  recordDate DateTime
+  isChecked  Boolean  @default(false)
+  habit      Habit    @relation(fields: [habitId], references: [id])
+}
+
+model Emoji {
+  id      Int    @id @default(autoincrement())
+  studyId Int
+  emoji   String
+  count   Int    @default(0)
+  study   Study  @relation(fields: [studyId], references: [id])
+}
+
+model FocusSession {
+  id        Int       @id @default(autoincrement())
+  studyId   Int
+  startTime DateTime
+  endTime   DateTime?
+  points    Int       @default(0)
+  study     Study     @relation(fields: [studyId], references: [id], onDelete: Cascade)
+}

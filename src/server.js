@@ -1,10 +1,12 @@
-import app from "./app.js";
-import dotenv from "dotenv";
+import express from "express";
+import router from "./modules/app.js"; 
 
-dotenv.config();
+const app = express();
+const PORT = 2020;
 
-const PORT = process.env.PORT || 5000;
+app.use(express.json());
+app.use(router);
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`Server started to listen at port number ${PORT}...`);
 });

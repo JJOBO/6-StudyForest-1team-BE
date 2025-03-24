@@ -25,7 +25,6 @@ model Habit {
   id        Int           @id @default(autoincrement())
   studyId   Int
   name      String
-  isActive  Boolean       @default(true)
   createdAt DateTime      @default(now())
   study     Study         @relation(fields: [studyId], references: [id], onDelete: Cascade)
   records   HabitRecord[]
@@ -34,9 +33,8 @@ model Habit {
 model HabitRecord {
   id         Int      @id @default(autoincrement())
   habitId    Int
-  recordDate DateTime
-  isChecked  Boolean  @default(false)
   habit      Habit    @relation(fields: [habitId], references: [id])
+  recordDate DateTime @default(now())
 }
 
 model Emoji {

@@ -1,0 +1,27 @@
+### 오늘의 습관 생성
+POST http://localhost:2020/habits/1/create
+Content-Type: application/json
+
+{
+  "name": "react 복습"
+}
+
+### 오늘의 습관 조회
+GET http://localhost:2020/habits/1
+
+### 오늘의 습관 수정
+PATCH http://localhost:2020/habits/2
+Content-Type: application/json
+
+{
+  "name": "express 복습"
+}
+
+### 오늘의 습관 삭제
+DELETE http://localhost:2020/habits/2
+
+### 오늘의 습관 체크 / 해제
+POST http://localhost:2020/habits/3/check
+
+### 오늘의 습관 체크 / 해제
+DELETE  http://localhost:2020/habits/3/check

@@ -1,0 +1,49 @@
+### 임시 스터디 조회 (비밀번호 포함)
+GET http://localhost:5002/api/studies/1/password/hashed_password/focus
+Accept: application/json
+
+###
+
+### 집중 세션 시작
+POST http://localhost:5002/api/studies/1/focus
+Content-Type: application/json
+
+{
+    "focusTime": 5
+}
+
+###
+
+### 집중 세션 조회
+GET http://localhost:5002/api/studies/1/password/hashed_password/focus
+Accept: application/json
+
+###
+
+### 집중 세션 완료
+PUT http://localhost:5002/api/studies/1/focus
+Content-Type: application/json
+
+{
+    "action": "complete"
+}
+
+###
+
+### 집중 세션 일시 정지
+PUT http://localhost:5002/api/studies/1/focus
+Content-Type: application/json
+
+{
+    "action": "pause"
+}
+
+###
+
+### 집중 세션 재개
+PUT http://localhost:5002/api/studies/1/focus
+Content-Type: application/json
+
+{
+    "action": "resume"
+}

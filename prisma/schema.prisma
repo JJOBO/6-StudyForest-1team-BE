@@ -48,10 +48,12 @@ model Emoji {
 }
 
 model FocusSession {
-  id        Int       @id @default(autoincrement())
-  studyId   Int
-  startTime DateTime
-  endTime   DateTime?
-  points    Int       @default(0)
-  study     Study     @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  id          Int       @id @default(autoincrement())
+  studyId     Int       @unique
+  startTime   DateTime
+  endTime     DateTime?
+  pausedTime  DateTime?
+  focusTime   Int // focusTime(집중시간 추가)
+  totalPoints Int       @default(0) // 이름 변경
+  study       Study     @relation(fields: [studyId], references: [id], onDelete: Cascade)
 }

@@ -26,7 +26,7 @@ const studyController = {
   getStudies: async (req, res) => {
     try {
       const { keyword, order = "createdAt", offset = 0 } = req.query;
-      const take = 6;
+      const take = 6; // 6개 목록씩 가져옴
       const skip = parseInt(offset);
 
       const orderBy = {};
@@ -43,9 +43,10 @@ const studyController = {
           message: "유효하지 않은 요청입니다.",
         });
       }
-
+      // 키워드가 포함된 객체를 검색하여 가져오고 없으면 빈배열을 가져옴
       const where = keyword ? { name: { contains: keyword } } : {};
-      // 스터디모델에서 정보 가져오고 이모지는 추천 많은순으로 3개 조회
+
+      // 스터디모델에서 정보 가져와서 변수에 할당, 이모지는 추천 많은순으로 3개 가져옴
       const studies = await prisma.study.findMany({
         where,
         skip,
@@ -61,12 +62,17 @@ const studyController = {
         },
       });
 
+      // where 조건에 포함된 객체의 총 개수를 변수에 할당
       const total = await prisma.study.count({ where });
+
+      /*  스터디 상세 조회 부분에서 res.setHeader 로 클라이언트 헤더에 recentStudyIds[id] 형식의
+      배열값을 보내주고 클라이언트 측에서 recentStudyIds 함수로 최근 스터디 목록을 저장하여 보관
+      */
 
       const recentStudyIds = req.headers.recentstudyids
         ? JSON.parse(req.headers.recentstudyids)
         : [];
-
+      // recentStudyIds 함수에 id값이 있으면 스터디 모델에서 해당 객체를 불러옴
       const recentStudies = await prisma.study.findMany({
         where: {
           id: {
@@ -144,7 +150,7 @@ const studyController = {
     try {
       const { study_id } = req.params;
       const id = parseInt(study_id);
-
+      // id값 형태 검증
       if (isNaN(id)) {
         return res.status(404).json({
           message: "페이지를 찾을 수 없습니다. URL을 확인해주세요.",
@@ -163,7 +169,7 @@ const studyController = {
           habits: true,
         },
       });
-
+      // id값 유무 검증
       if (!study) {
         return res.status(404).json({
           message: "페이지를 찾을 수 없습니다. URL을 확인해주세요.",
@@ -173,11 +179,16 @@ const studyController = {
       const recentStudyIds = req.headers.recentstudyids
         ? JSON.parse(req.headers.recentstudyids)
         : [];
+
+      /* 사용자가 입력할 id값과 recentStudyIds에 존재하는 각각의 studyId를 비교하여 중복을 제거한 이후
+        updatedRecentStudyIds 배열에 3개의 값만 남김   */
+
       const updatedRecentStudyIds = [
         id,
         ...recentStudyIds.filter((studyId) => studyId !== id),
       ].slice(0, 3);
 
+      // 리스폰스 헤더값에 recentStudyIds[5] 이런식의 최근 조회 목록 id 배열값을 반환함
       res.setHeader("recentStudyIds", JSON.stringify(updatedRecentStudyIds));
 
       res.json(study);
@@ -221,6 +232,7 @@ const studyController = {
         },
       });
 
+      // id값과 emoji(string)로 이모지가 있는지 확인하고 있으면 카운트를 1늘리고 없으면 새로 생성
       if (existingEmoji) {
         await prisma.emoji.update({
           where: { id: existingEmoji.id },
@@ -261,11 +273,9 @@ const studyController = {
       try {
         await confirmPassword(id, password);
       } catch (error) {
-        return res
-          .status(401)
-          .json({
-            message: "인증되지 않았습니다. 올바른 인증 정보를 입력해주세요.",
-          });
+        return res.status(401).json({
+          message: "인증되지 않았습니다. 올바른 인증 정보를 입력해주세요.",
+        });
       }
 
       await prisma.study.delete({ where: { id } });
@@ -298,11 +308,9 @@ const studyController = {
       try {
         await confirmPassword(id, password);
       } catch (error) {
-        return res
-          .status(401)
-          .json({
-            message: "인증되지 않았습니다. 올바른 인증 정보를 입력해주세요.",
-          });
+        return res.status(401).json({
+          message: "인증되지 않았습니다. 올바른 인증 정보를 입력해주세요.",
+        });
       }
 
       const updatedStudy = await prisma.study.update({

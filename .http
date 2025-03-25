@@ -1,5 +1,5 @@
 ### 오늘의 습관 생성
-POST http://localhost:2020/habits/1/create
+POST http://localhost:2020/study/2/habits
 Content-Type: application/json
 
 {
@@ -7,10 +7,10 @@ Content-Type: application/json
 }
 
 ### 오늘의 습관 조회
-GET http://localhost:2020/habits/1
+GET http://localhost:2020/study/2/habits
 
 ### 오늘의 습관 수정
-PATCH http://localhost:2020/habits/2
+PATCH http://localhost:2020/study/habits/9
 Content-Type: application/json
 
 {
@@ -18,10 +18,13 @@ Content-Type: application/json
 }
 
 ### 오늘의 습관 삭제
-DELETE http://localhost:2020/habits/2
+DELETE http://localhost:2020/study/habits/9
 
-### 오늘의 습관 체크 / 해제
-POST http://localhost:2020/habits/3/check
+### 오늘의 습관 체크 
+POST http://localhost:2020/study/habits/10/check
 
-### 오늘의 습관 체크 / 해제
-DELETE  http://localhost:2020/habits/3/check
+### 오늘의 습관 해제
+DELETE  http://localhost:2020/study/habits/3/uncheck
+
+### 주간 습관 조회
+GET http://localhost:2020/study/2/habits/week

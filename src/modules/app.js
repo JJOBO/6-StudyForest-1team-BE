@@ -3,6 +3,6 @@ import habitsRouter from "./habits.module.js";
 
 const router = express.Router();
 
-router.use("/habits", habitsRouter);
+router.use("/study", habitsRouter);
 
 export default router;

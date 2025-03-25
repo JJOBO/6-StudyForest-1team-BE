@@ -1,12 +1,12 @@
 import express from "express";
 import cors from "cors";
-import studyRoutes from "./routes/studyRoutes.js";
+import studySessionRoutes from "./routes/studySessionRoutes.js";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.use("/studies", studyRoutes);
+app.use("/api", studySessionRoutes);
 
 export default app;

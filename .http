@@ -71,21 +71,17 @@ GET http://localhost:5000/api/study/5
 
 
 ### ID로 스터디 상세 조회 (최근 본 스터디 아이디 업데이트 확인)
-# 특정 ID의 스터디 상세 정보를 조회하고, 최근 본 스터디 아이디가 recentStudyIds: [5]헤더에 업데이트 되는지 확인합니다.
+# 특정 ID의 스터디 상세 정보를 조회하고, 최근 본 스터디 아이디가 헤더에 recentStudyIds: [5] 형태로 저장장
 GET http://localhost:5000/api/study/5
 
-### ID로 스터디 공유
-# 특정 ID의 스터디를 공유합니다.
-POST http://localhost:5000/api/study/5/share
-Content-Type: application/json
 
 ### ID로 스터디 삭제
 # 특정 ID의 스터디를 삭제합니다. 
-DELETE http://localhost:5000/api/study/9
+DELETE http://localhost:5000/api/study/26
 Content-Type: application/json
 
 {
-  "password": "안전한비밀번호123"
+  "password": "password"
 }
 
 ### ID로 스터디 정보 수정
@@ -155,3 +151,8 @@ Content-Type: application/json
 
 {
 }
+
+### ID로 스터디 공유
+# 특정 ID의 스터디를 공유합니다.
+POST http://localhost:5000/api/study/5/share
+Content-Type: application/json

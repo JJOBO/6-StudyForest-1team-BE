@@ -3,6 +3,24 @@ import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
+// 인증 함수를 별도로 분리
+async function confirmPassword(studyId, password) {
+  const study = await prisma.study.findUnique({
+    where: { id: studyId },
+    select: { passwordHash: true },
+  });
+
+  if (!study) {
+    throw new Error("스터디를 찾을 수 없습니다.");
+  }
+
+  const isValid = await bcrypt.compare(password, study.passwordHash);
+
+  if (!isValid) {
+    throw new Error("비밀번호가 일치하지 않습니다.");
+  }
+}
+
 const studyController = {
   // 스터디 목록 조회, 검색, 정렬, 더보기
   getStudies: async (req, res) => {
@@ -240,25 +258,14 @@ const studyController = {
         });
       }
 
-      const study = await prisma.study.findUnique({
-        where: { id },
-      });
-
-      if (!study) {
-        return res.status(404).json({
-          message: "페이지를 찾을 수 없습니다. URL을 확인해주세요.",
-        });
-      }
-
-      const isPasswordValid = await bcrypt.compare(
-        password,
-        study.passwordHash
-      );
-
-      if (!isPasswordValid) {
-        return res.status(401).json({
-          message: "인증되지 않았습니다. 올바른 인증 정보를 입력해주세요.",
-        });
+      try {
+        await confirmPassword(id, password);
+      } catch (error) {
+        return res
+          .status(401)
+          .json({
+            message: "인증되지 않았습니다. 올바른 인증 정보를 입력해주세요.",
+          });
       }
 
       await prisma.study.delete({ where: { id } });
@@ -288,25 +295,14 @@ const studyController = {
         return res.status(400).json({ message: "유효하지 않은 요청입니다." });
       }
 
-      const study = await prisma.study.findUnique({
-        where: { id },
-      });
-
-      if (!study) {
-        return res.status(404).json({
-          message: "페이지를 찾을 수 없습니다. URL을 확인해주세요.",
-        });
-      }
-
-      const isPasswordValid = await bcrypt.compare(
-        password,
-        study.passwordHash
-      );
-
-      if (!isPasswordValid) {
-        return res.status(401).json({
-          message: "인증되지 않았습니다. 올바른 인증 정보를 입력해주세요.",
-        });
+      try {
+        await confirmPassword(id, password);
+      } catch (error) {
+        return res
+          .status(401)
+          .json({
+            message: "인증되지 않았습니다. 올바른 인증 정보를 입력해주세요.",
+          });
       }
 
       const updatedStudy = await prisma.study.update({
@@ -331,4 +327,5 @@ const studyController = {
   shareStudy: async (req, res) => {},
 };
 
+export { confirmPassword };
 export default studyController;

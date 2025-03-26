@@ -8,35 +8,37 @@ datasource db {
 }
 
 model Study {
-  id            Int            @id @default(autoincrement())
-  name          String
-  description   String?
-  background    String?
-  passwordHash  String
-  creatorNick   String
-  points        Int            @default(0)
-  createdAt     DateTime       @default(now())
-  habits        Habit[]
-  emojis        Emoji[]
-  focusSessions FocusSession[]
+  id           Int      @id @default(autoincrement())
+  name         String
+  description  String?
+  background   String?
+  passwordHash String
+  creatorNick  String
+  totalPoints  Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  focusStartTime  DateTime?
+  focusTargetTime Int?
+
+  habits Habit[]
+  emojis Emoji[]
 }
 
 model Habit {
   id        Int           @id @default(autoincrement())
   studyId   Int
   name      String
-  isActive  Boolean       @default(true)
   createdAt DateTime      @default(now())
   study     Study         @relation(fields: [studyId], references: [id], onDelete: Cascade)
   records   HabitRecord[]
+  isActive  Boolean       @default(true)
 }
 
 model HabitRecord {
-  id         Int      @id @default(autoincrement())
+  id         Int    @id @default(autoincrement())
   habitId    Int
-  recordDate DateTime
-  isChecked  Boolean  @default(false)
-  habit      Habit    @relation(fields: [habitId], references: [id])
+  habit      Habit  @relation(fields: [habitId], references: [id])
+  recordDate String
 }
 
 model Emoji {
@@ -45,13 +47,4 @@ model Emoji {
   emoji   String
   count   Int    @default(0)
   study   Study  @relation(fields: [studyId], references: [id])
-}
-
-model FocusSession {
-  id        Int       @id @default(autoincrement())
-  studyId   Int
-  startTime DateTime
-  endTime   DateTime?
-  points    Int       @default(0)
-  study     Study     @relation(fields: [studyId], references: [id], onDelete: Cascade)
 }

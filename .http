@@ -1,0 +1,42 @@
+### 스터디 생성
+POST http://localhost:5002/studies
+Content-Type: application/json
+
+{
+  "name": "임시 스터디",
+  "description": "테스트용",
+  "background": "blue",
+  "creatorNick": "홍길동",
+  "password": "1234"
+}
+
+### 집중 인증 조회
+POST http://localhost:5002/studies/8/focus/auth
+Content-Type: application/json
+
+{
+  "password": "1234"
+}
+
+
+###
+
+### 집중 시작
+POST http://localhost:5002/studies/8/focus
+Content-Type: application/json
+
+{
+  "targetTime": 1530
+}
+
+###
+
+### 집중 종료
+PUT http://localhost:5002/studies/8/focus
+Content-Type: application/json
+
+{
+  "elapsedTime": 2130
+}
+
+###

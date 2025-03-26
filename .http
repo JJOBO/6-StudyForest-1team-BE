@@ -1,5 +1,5 @@
 ### 스터디 생성
-POST http://localhost:5000/studies
+POST http://localhost:5002/studies
 Content-Type: application/json
 
 {
@@ -11,7 +11,7 @@ Content-Type: application/json
 }
 
 ### 집중 인증 조회
-POST http://localhost:5000/studies/2/focus/auth
+POST http://localhost:5002/studies/8/focus/auth
 Content-Type: application/json
 
 {
@@ -22,7 +22,7 @@ Content-Type: application/json
 ###
 
 ### 집중 시작
-POST http://localhost:5000/api/studies/2/focus
+POST http://localhost:5002/studies/8/focus
 Content-Type: application/json
 
 {
@@ -32,7 +32,7 @@ Content-Type: application/json
 ###
 
 ### 집중 종료
-PUT http://localhost:5000/api/study/1/focus
+PUT http://localhost:5002/studies/8/focus
 Content-Type: application/json
 
 {
@@ -40,6 +40,3 @@ Content-Type: application/json
 }
 
 ###
-
-### 현재 스터디 상태 확인
-GET http://localhost:5000/api/study/1

@@ -1,5 +1,5 @@
-### 스터디 생성 (임시 스터디 생성 코드)
-POST http://localhost:5002/api/study
+### 스터디 생성
+POST http://localhost:5000/studies
 Content-Type: application/json
 
 {
@@ -10,10 +10,19 @@ Content-Type: application/json
   "password": "1234"
 }
 
+### 집중 인증 조회
+POST http://localhost:5000/studies/2/focus/auth
+Content-Type: application/json
+
+{
+  "password": "1234"
+}
+
+
 ###
 
 ### 집중 시작
-POST http://localhost:5002/api/study/12/focus
+POST http://localhost:5000/api/studies/2/focus
 Content-Type: application/json
 
 {

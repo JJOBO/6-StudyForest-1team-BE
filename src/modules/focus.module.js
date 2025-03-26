@@ -1,9 +1,40 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
+import { confirmStudyPassword } from "./study.module.js"; //dev 에 merge후 경로 추가예정
 
 const prisma = new PrismaClient();
 const focusRouter = express.Router();
 
+focusRouter.post("/studies/:id/focus/auth", async (req, res, next) => {
+  const id = Number(req.params.id);
+  const { password } = req.body;
+
+  try {
+    // 함수로 비밀번호 확인
+    await confirmStudyPassword(id, password);
+
+    // 비밀번호 인증 성공 → 집중 정보 반환
+    const study = await prisma.study.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        pausedTime: true,
+        focusTime: true,
+        totalPoints: true,
+      },
+    });
+
+    if (!study) {
+      return res.status(404).json({ message: "스터디가 존재하지 않습니다." });
+    }
+
+    res.status(200).json(study);
+  } catch (e) {
+    next(e);
+  }
+});
 /**
  * 포인트 계산 함수
  * - 목표시간 도달 시 3점
@@ -21,7 +52,7 @@ function calculateFocusPoints(diffInSeconds) {
 /**
  * 오늘의 집중 시작
  */
-focusRouter.post("/:id/focus", async (req, res, next) => {
+focusRouter.post("/studies/:id/focus", async (req, res, next) => {
   try {
     const { id } = req.params;
     const { targetTime } = req.body;
@@ -47,7 +78,7 @@ focusRouter.post("/:id/focus", async (req, res, next) => {
 /**
  * 오늘의 집중 종료
  */
-focusRouter.put("/:id/focus", async (req, res, next) => {
+focusRouter.put("/studies/:id/focus", async (req, res, next) => {
   try {
     const { id } = req.params;
     const { elapsedTime } = req.body;

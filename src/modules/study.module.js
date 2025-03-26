@@ -6,6 +6,22 @@ import bcrypt from "bcrypt";
 const prisma = new PrismaClient();
 const studyRouter = express.Router();
 
+async function confirmStudyPassword(studyId, password) {
+  const study = await prisma.study.findUnique({
+    where: { id: studyId },
+    select: { passwordHash: true },
+  });
+
+  if (!study) {
+    throw new Error("스터디를 찾을 수 없습니다.");
+  }
+
+  const isValid = await bcrypt.compare(password, study.passwordHash);
+
+  if (!isValid) {
+    throw new Error("비밀번호가 일치하지 않습니다.");
+  }
+}
 studyRouter.post("/", async (req, res, next) => {
   try {
     const { name, description, background, creatorNick, password } = req.body;
@@ -27,9 +43,10 @@ studyRouter.post("/", async (req, res, next) => {
     });
 
     res.status(201).json(newStudy);
-  } catch (error) {
-    next(error);
+  } catch (e) {
+    next(e);
   }
 });
 
+export { confirmStudyPassword };
 export default studyRouter;

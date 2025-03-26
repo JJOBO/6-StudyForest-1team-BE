@@ -9,10 +9,9 @@
 ALTER TABLE "FocusSession" DROP CONSTRAINT "FocusSession_studyId_fkey";
 
 -- AlterTable
-ALTER TABLE "Study" DROP COLUMN "points",
+ALTER TABLE "Study"
 ADD COLUMN     "focusStartTime" TIMESTAMP(3),
-ADD COLUMN     "focusTargetTime" INTEGER,
-ADD COLUMN     "totalPoints" INTEGER NOT NULL DEFAULT 0;
+ADD COLUMN     "focusTargetTime" INTEGER;
 
 -- DropTable
 DROP TABLE "FocusSession";

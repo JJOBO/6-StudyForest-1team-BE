@@ -153,7 +153,7 @@ Content-Type: application/json
 }
 
 ### 집중 인증 조회
-POST http://localhost:5002/studies/8/focus/auth
+POST http://localhost:5002/study/8/focus/auth
 Content-Type: application/json
 
 {
@@ -161,7 +161,7 @@ Content-Type: application/json
 }
 
 ### 집중 시작
-POST http://localhost:5002/studies/8/focus
+POST http://localhost:5002/study/8/focus
 Content-Type: application/json
 
 {
@@ -169,7 +169,7 @@ Content-Type: application/json
 }
 
 ### 집중 종료
-PUT http://localhost:5002/studies/8/focus
+PUT http://localhost:5002/study/8/focus
 Content-Type: application/json
 
 {

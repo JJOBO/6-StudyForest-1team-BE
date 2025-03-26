@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "HabitRecord" ALTER COLUMN "recordDate" DROP DEFAULT,
-ALTER COLUMN "recordDate" SET DATA TYPE TEXT;

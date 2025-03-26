@@ -1,9 +1,40 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
+import { confirmStudyPassword } from "./study.module.js";
 
 const prisma = new PrismaClient();
 
 const habitsRouter = express.Router();
+
+/**
+ * 오늘의 습관 비밀번호 인증
+ */
+habitsRouter.post("/:studyId/habits/auth", async (req, res, next) => {
+  const { password } = req.body;
+  const studyId = Number(req.params.studyId);
+
+  try {
+    await confirmStudyPassword(studyId, password);
+
+    const habit = await prisma.habit.findUnique({
+      where: { id: studyId },
+      select: {
+        id: true,
+        name: true,
+        records: true,
+        isActive: true,
+      },
+    });
+
+    if (!habit) {
+      return res.status(400).json({ message: "비밀번호가 일치하지 않습니다." });
+    }
+
+    res.json(habit);
+  } catch (e) {
+    next(e);
+  }
+});
 
 /**
  * 오늘의 습관 생성

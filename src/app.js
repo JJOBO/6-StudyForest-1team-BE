@@ -4,6 +4,8 @@ import cors from "cors";
 
 // 라우트 불러오기
 import studyRouter from "./modules/study.module.js";
+import focusRouter from "./modules/focus.module.js";
+import habitsRouter from "./modules/habits.module.js";
 
 // 환경변수 불러오기
 dotenv.config();
@@ -16,6 +18,8 @@ app.use(express.json());
 // API 라우팅
 
 app.use("/", studyRouter);
+app.use("/study", focusRouter);
+app.use("/study", habitsRouter);
 
 // 서버 실행
 const PORT = process.env.PORT || 5000;

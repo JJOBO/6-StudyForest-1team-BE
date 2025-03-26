@@ -5,7 +5,7 @@
   "main": "src/app.js",
   "type": "module",
   "scripts": {
-    "start": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/app.js",
     "dev": "nodemon src/app.js"
   },
   "repository": {
@@ -24,10 +24,10 @@
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "prisma": "^6.5.0"
+    "express": "^4.21.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "prisma": "^6.5.0"
   }
 }

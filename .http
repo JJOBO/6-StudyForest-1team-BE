@@ -1,82 +1,36 @@
-<<<<<<< HEAD
-### 오늘의 습관 생성
-POST http://localhost:2020/study/2/habits
+### 스터디 생성 (임시 스터디 생성 코드)
+POST http://localhost:5002/api/study
 Content-Type: application/json
 
 {
-  "name": "react 복습"
-}
-
-### 오늘의 습관 조회
-GET http://localhost:2020/study/2/habits
-
-### 오늘의 습관 수정
-PATCH http://localhost:2020/study/habits/9
-Content-Type: application/json
-
-{
-  "name": "express 복습"
-}
-
-### 오늘의 습관 삭제
-DELETE http://localhost:2020/study/habits/9
-
-### 오늘의 습관 체크 
-POST http://localhost:2020/study/habits/10/check
-
-### 오늘의 습관 해제
-DELETE  http://localhost:2020/study/habits/3/uncheck
-
-### 주간 습관 조회
-GET http://localhost:2020/study/2/habits/week
-=======
-### 임시 스터디 조회 (비밀번호 포함)
-GET http://localhost:5002/api/studies/1/password/hashed_password/focus
-Accept: application/json
-
-###
-
-### 집중 세션 시작
-POST http://localhost:5002/api/studies/1/focus
-Content-Type: application/json
-
-{
-    "focusTime": 5
+  "name": "임시 스터디",
+  "description": "테스트용",
+  "background": "blue",
+  "creatorNick": "홍길동",
+  "password": "1234"
 }
 
 ###
 
-### 집중 세션 조회
-GET http://localhost:5002/api/studies/1/password/hashed_password/focus
-Accept: application/json
-
-###
-
-### 집중 세션 완료
-PUT http://localhost:5002/api/studies/1/focus
+### 집중 시작
+POST http://localhost:5002/api/study/12/focus
 Content-Type: application/json
 
 {
-    "action": "complete"
+  "targetTime": 1530
 }
 
 ###
 
-### 집중 세션 일시 정지
-PUT http://localhost:5002/api/studies/1/focus
+### 집중 종료
+PUT http://localhost:5000/api/study/1/focus
 Content-Type: application/json
 
 {
-    "action": "pause"
+  "elapsedTime": 2130
 }
 
 ###
 
-### 집중 세션 재개
-PUT http://localhost:5002/api/studies/1/focus
-Content-Type: application/json
-
-{
-    "action": "resume"
-}
->>>>>>> feature/focus
+### 현재 스터디 상태 확인
+GET http://localhost:5000/api/study/1

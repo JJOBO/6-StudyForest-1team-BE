@@ -1,211 +1,91 @@
+import express from "express";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+const focusRouter = express.Router();
 
-// 오늘의 집중 조회
-export const getFocusSessions = async (req, res) => {
-  const { id, password } = req.params;
+/**
+ * 포인트 계산 함수
+ * - 목표시간 도달 시 3점
+ * - 이후 초과 10분마다 1점씩 추가
+ */
+function calculateFocusPoints(diffInSeconds) {
+  if (diffInSeconds >= 0) return 0;
 
+  const diffInMinutes = Math.floor(Math.abs(diffInSeconds) / 60);
+  if (diffInMinutes < 10) return 3;
+
+  return 3 + Math.floor(diffInMinutes / 10); // 10분당 1점 추가
+}
+
+/**
+ * 오늘의 집중 시작
+ */
+focusRouter.post("/:id/focus", async (req, res, next) => {
   try {
-    const study = await prisma.study.findUnique({
+    const { id } = req.params;
+    const { targetTime } = req.body;
+
+    if (!targetTime || targetTime <= 0) {
+      return res.status(403).json({ error: "올바르지 않은 집중 시간입니다." });
+    }
+
+    await prisma.study.update({
+      where: { id: parseInt(id) },
+      data: {
+        focusStartTime: new Date(),
+        focusTargetTime: targetTime,
+      },
+    });
+
+    res.status(201).json({ message: "집중이 시작되었습니다." });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * 오늘의 집중 종료
+ */
+focusRouter.put("/:id/focus", async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { elapsedTime } = req.body;
+
+    const focusStudy = await prisma.study.findUnique({
       where: { id: parseInt(id) },
     });
 
-    if (!study || study.passwordHash !== password) {
+    if (
+      !focusStudy ||
+      !focusStudy.focusStartTime ||
+      focusStudy.focusTargetTime === null
+    ) {
       return res
         .status(403)
         .json({ error: "요청한 작업을 수행하기 위한 권한이 없습니다." });
     }
 
-    const focusSession = await prisma.focusSession.findUnique({
-      where: { studyId: parseInt(id) },
-    });
+    const { focusTargetTime, totalPoints } = focusStudy;
+    const timeDifference = focusTargetTime - elapsedTime; // 초 단위
 
-    if (!focusSession) {
-      return res
-        .status(404)
-        .json({ error: "해당 집중 세션을 찾을 수 없습니다." });
-    }
+    const focusPoints = calculateFocusPoints(timeDifference);
 
-    res.status(200).json(focusSession);
-  } catch (error) {
-    console.error("오늘의 집중을 조회할 수 없습니다.", error);
-    res.status(500).json({
-      error: "서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
-    });
-  }
-};
-
-// 오늘의 집중 시작
-export const startFocusSession = async (req, res) => {
-  const { id } = req.params;
-  const { focusTime } = req.body;
-
-  if (!focusTime) {
-    return res
-      .status(400)
-      .json({ error: "집중 시간(focusTime)이 필요합니다." });
-  }
-
-  try {
-    const session = await prisma.focusSession.findUnique({
-      where: { studyId: parseInt(id) },
-    });
-
-    await prisma.focusSession.update({
-      where: { id: session.id },
+    const updatedStudy = await prisma.study.update({
+      where: { id: parseInt(id) },
       data: {
-        startTime: new Date(),
-        endTime: null,
-        focusTime: parseInt(focusTime),
-        pausedTime: null,
+        totalPoints: totalPoints + focusPoints,
+        focusStartTime: null,
+        focusTargetTime: null,
       },
     });
 
-    res.status(201).json({ message: "집중 세션이 시작되었습니다." });
+    res
+      .status(200)
+      .json({ focusPoints, totalPoints: updatedStudy.totalPoints });
   } catch (error) {
-    console.error("집중 세션 시작 오류:", error);
-    res.status(500).json({
-      error: "서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
-    });
+    next(error);
   }
-};
+});
 
-// 오늘의 집중 완료
-export const completeSession = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const session = await prisma.focusSession.findUnique({
-      where: { studyId: parseInt(id) },
-    });
-
-    if (!session) {
-      return res
-        .status(404)
-        .json({ error: "해당 집중 세션을 찾을 수 없습니다." });
-    }
-
-    const endTime = new Date();
-    let totalPausedTime = 0;
-
-    if (session.pausedTime) {
-      const pausedDuration = (endTime - new Date(session.pausedTime)) / 1000;
-      totalPausedTime += pausedDuration;
-    }
-
-    const totalDurationInMilliseconds =
-      endTime - session.startTime - totalPausedTime * 1000;
-
-    // 총 집중 시간
-    const totalFocusTimeInSeconds = Math.floor(
-      totalDurationInMilliseconds / 1000
-    );
-
-    const durationInMinutes = Math.floor(totalFocusTimeInSeconds / 60);
-    const durationInSeconds = totalFocusTimeInSeconds % 60;
-
-    let pointsEarned = 0;
-
-    // 원래 설정한 집중 시간과 비교하여 점수 계산
-    if (totalFocusTimeInSeconds >= session.focusTime * 60) {
-      pointsEarned = 3;
-      const additionalSeconds =
-        totalFocusTimeInSeconds - session.focusTime * 60;
-
-      if (additionalSeconds > 0) {
-        pointsEarned += Math.floor(additionalSeconds / 600); // 10분마다 추가 점수
-      }
-    }
-
-    const totalPoints = session.totalPoints + pointsEarned;
-
-    await prisma.focusSession.update({
-      where: { id: session.id },
-      data: {
-        endTime: endTime,
-        totalPoints: totalPoints,
-      },
-    });
-
-    res.json({
-      totalPoints: totalPoints,
-      focusTime: `${durationInMinutes}분 ${durationInSeconds}초`,
-    });
-  } catch (error) {
-    console.error("집중 세션 완료 오류:", error);
-    res.status(500).json({
-      error: "서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
-    });
-  }
-};
-
-// 오늘의 집중 일시 정지
-export const pauseFocusSession = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const session = await prisma.focusSession.findUnique({
-      where: { studyId: parseInt(id) },
-    });
-
-    if (!session) {
-      return res
-        .status(404)
-        .json({ error: "해당 집중 세션을 찾을 수 없습니다." });
-    }
-
-    await prisma.focusSession.update({
-      where: { id: session.id },
-      data: {
-        pausedTime: new Date(),
-      },
-    });
-
-    res.json({ message: "일시 정지" });
-  } catch (error) {
-    console.error("일시 정지 오류:", error);
-    res.status(500).json({
-      error: "서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
-    });
-  }
-};
-
-// 오늘의 집중 재개
-export const resumeFocusSession = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const session = await prisma.focusSession.findUnique({
-      where: { studyId: parseInt(id) },
-    });
-
-    if (!session) {
-      return res
-        .status(404)
-        .json({ error: "해당 집중 세션을 찾을 수 없습니다." });
-    }
-
-    await prisma.focusSession.update({
-      where: { id: session.id },
-      data: {
-        pausedTime: null,
-      },
-    });
-
-    res.json({ message: "재개" });
-  } catch (error) {
-    console.error("재개 오류:", error);
-    res.status(500).json({
-      error: "서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
-    });
-  }
-};
-
-export default {
-  getFocusSessions,
-  startFocusSession,
-  completeSession,
-  pauseFocusSession,
-  resumeFocusSession,
-};
+export default focusRouter;

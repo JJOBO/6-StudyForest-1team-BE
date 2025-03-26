@@ -8,17 +8,20 @@ datasource db {
 }
 
 model Study {
-  id            Int            @id @default(autoincrement())
-  name          String
-  description   String?
-  background    String?
-  passwordHash  String
-  creatorNick   String
-  points        Int            @default(0)
-  createdAt     DateTime       @default(now())
-  habits        Habit[]
-  emojis        Emoji[]
-  focusSessions FocusSession[]
+  id           Int      @id @default(autoincrement())
+  name         String
+  description  String?
+  background   String?
+  passwordHash String
+  creatorNick  String
+  totalPoints  Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  focusStartTime  DateTime?
+  focusTargetTime Int?
+
+  habits Habit[]
+  emojis Emoji[]
 }
 
 model Habit {
@@ -44,15 +47,4 @@ model Emoji {
   emoji   String
   count   Int    @default(0)
   study   Study  @relation(fields: [studyId], references: [id])
-}
-
-model FocusSession {
-  id          Int       @id @default(autoincrement())
-  studyId     Int       @unique
-  startTime   DateTime
-  endTime     DateTime?
-  pausedTime  DateTime?
-  focusTime   Int // focusTime(집중시간 추가)
-  totalPoints Int       @default(0) // 이름 변경
-  study       Study     @relation(fields: [studyId], references: [id], onDelete: Cascade)
 }

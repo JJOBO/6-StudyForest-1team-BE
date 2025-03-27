@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 const studyRouter = express.Router();
 
 // 인증 함수를 별도로 분리
-async function confirmPassword(studyId, password) {
+async function confirmStudyPassword(studyId, password) {
   const study = await prisma.study.findUnique({
     where: { id: studyId },
     select: { passwordHash: true },
@@ -271,7 +271,7 @@ studyRouter.delete("/study/:study_id", async (req, res, next) => {
     }
 
     try {
-      await confirmPassword(id, password);
+      await confirmStudyPassword(id, password);
     } catch (error) {
       const errorCode = new Error(
         "인증되지 않았습니다. 올바른 인증 정보를 입력해주세요."
@@ -307,7 +307,7 @@ studyRouter.patch("/study/:study_id", async (req, res, next) => {
     }
 
     try {
-      await confirmPassword(id, password);
+      await confirmStudyPassword(id, password);
     } catch (error) {
       const errorCode = new Error(
         "인증되지 않았습니다. 올바른 인증 정보를 입력해주세요."
@@ -331,5 +331,5 @@ studyRouter.patch("/study/:study_id", async (req, res, next) => {
   }
 });
 
-export { confirmPassword };
+export { confirmStudyPassword as confirmStudyPassword };
 export default studyRouter;

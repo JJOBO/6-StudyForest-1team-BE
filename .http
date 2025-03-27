@@ -176,6 +176,14 @@ Content-Type: application/json
   "elapsedTime": 2130
 }
 
+### 오늘의 습관 비밀번호 인증
+POST http://localhost:5000/study/1/habits/auth
+Content-Type: application/json
+
+{
+  "password": "안전한비밀번호123"
+}
+
 ### 오늘의 습관 생성
 POST http://localhost:2020/study/2/habits
 Content-Type: application/json

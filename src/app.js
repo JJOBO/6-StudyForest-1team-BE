@@ -11,6 +11,9 @@ app.use(cors());
 app.use(express.json());
 app.use(router);
 
+//미들웨어
+app.use(errorHandler);
+
 // 서버 실행
 const PORT = process.env.PORT || 5000;
 

@@ -6,6 +6,7 @@ import cors from "cors";
 import studyRouter from "./modules/study.module.js";
 import focusRouter from "./modules/focus.module.js";
 import habitsRouter from "./modules/habits.module.js";
+import errorHandler from "./middleware/errorHandler.middleware.js";
 
 // 환경변수 불러오기
 dotenv.config();
@@ -20,6 +21,9 @@ app.use(express.json());
 app.use("/", studyRouter);
 app.use("/study", focusRouter);
 app.use("/study", habitsRouter);
+
+//미들웨어
+app.use(errorHandler);
 
 // 서버 실행
 const PORT = process.env.PORT || 5000;

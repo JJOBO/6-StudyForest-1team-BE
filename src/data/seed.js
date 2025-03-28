@@ -35,24 +35,13 @@ async function main() {
     });
   }
 
-  for (const habit of mockHabitData) {
-    const { records, ...habitData } = habit;
+  await prisma.habit.createMany({
+    data: mockHabitData,
+  });
 
-    const newHabit = await prisma.habit.create({
-      data: habitData,
-    });
-
-    if (records && records.length > 0) {
-      for (const record of records) {
-        await prisma.habitRecord.create({
-          data: {
-            habitId: newHabit.id,
-            recordDate: record.recordDate,
-          },
-        });
-      }
-    }
-  }
+  await prisma.habitRecord.createMany({
+    data: mockHabitRecordData,
+  });
 }
 
 main()

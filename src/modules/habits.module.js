@@ -66,7 +66,10 @@ habitsRouter.get("/:studyId/habits", async (req, res, next) => {
 
   try {
     const habits = await prisma.habit.findMany({
-      where: { studyId },
+      where: {
+        studyId,
+        isActive: true,
+      },
     });
 
     res.status(200).json(habits);
@@ -210,7 +213,6 @@ habitsRouter.get("/:studyId/habits/week", async (req, res, next) => {
       where: {
         habit: {
           studyId,
-          isActive: true,
         },
         recordDate: {
           gte: startOfWeek,

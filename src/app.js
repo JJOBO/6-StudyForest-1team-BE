@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import router from "./modules/index.js";
+import errorHandler from "./middleware/errorHandler.middleware.js";
 
 // 환경변수 불러오기
 dotenv.config();

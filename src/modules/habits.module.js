@@ -180,22 +180,16 @@ habitsRouter.delete("/habits/:habitId/uncheck", async (req, res, next) => {
   }
 });
 
-// 이번 주 월요일 구하는 함수
-function getStartOfWeek(date) {
-  const startOfWeek = new Date(date);
-  const day = startOfWeek.getDay(); // 0: 일요일, 1: 월요일, ..., 6: 토요일
-  startOfWeek.setDate(startOfWeek.getDate() - day);
-  startOfWeek.setHours(0, 0, 0, 0);
-  return startOfWeek.toISOString().split("T")[0];
-}
-
-// 이번 주 일요일 구하는 함수
-function getEndOfWeek(date) {
-  const endOfWeek = new Date(date);
-  const day = endOfWeek.getDay();
-  endOfWeek.setDate(endOfWeek.getDate() + (6 - day));
-  endOfWeek.setHours(23, 59, 59, 999);
-  return endOfWeek.toISOString().split("T")[0];
+// 이번 주의 시작, 끝 날짜 구하는 함수
+function getWeekRange() {
+  const today = new Date();
+  const monday = new Date(today);
+  const sunday = new Date(today);
+  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+  sunday.setDate(monday.getDate() + 6);
+  monday.setHours(0, 0, 0, 0);
+  sunday.setHours(23, 59, 59, 999);
+  return { monday, sunday };
 }
 
 /**
@@ -205,23 +199,53 @@ habitsRouter.get("/:studyId/habits/week", async (req, res, next) => {
   const studyId = Number(req.params.studyId);
 
   try {
-    const today = new Date();
-    const startOfWeek = getStartOfWeek(today); // 월요일 날짜
-    const endOfWeek = getEndOfWeek(today); // 일요일 날짜
+    const { monday, sunday } = getWeekRange();
 
+    // 해당 스터디의 모든 습관 불러오기
+    const habits = await prisma.habit.findMany({
+      where: {
+        studyId,
+      },
+    });
+
+    // 이번 주에 체크된 기록 불러오기
     const records = await prisma.habitRecord.findMany({
       where: {
-        habit: {
-          studyId,
+        habitId: {
+          in: habits.map((habit) => habit.id),
         },
         recordDate: {
-          gte: startOfWeek,
-          lte: endOfWeek,
+          gte: monday.toISOString().split("T")[0], // "YYYY-MM-DD"
+          lte: sunday.toISOString().split("T")[0],
         },
       },
     });
 
-    res.status(200).json(records);
+    // 날싸 배열 (월~일)
+    const week = [...Array(7)].map((_, i) => {
+      const date = new Date(monday);
+      date.setDate(date.getDate() + i);
+      return date.toISOString().slice(0, 10);
+    });
+
+    // 습관별 기록 매핑
+    const result = habits.map((habit) => {
+      const habitRecords = records
+        .filter((record) => record.habitId === habit.id)
+        .map((record) =>
+          new Date(record.recordDate).toISOString().slice(0, 10)
+        );
+
+      const recordsForWeek = week.map((date) => habitRecords.includes(date));
+
+      return {
+        habitId: habit.id,
+        name: habit.name,
+        records: recordsForWeek,
+      };
+    });
+
+    res.status(200).json(result);
   } catch (e) {
     next(e);
   }

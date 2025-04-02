@@ -1,6 +1,6 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
-//import { confirmStudyPassword } from "./study.module.js"; //dev 에 merge후 경로 추가예정
+import { confirmStudyPassword } from "./study.module.js";
 
 const prisma = new PrismaClient();
 const focusRouter = express.Router();
@@ -14,7 +14,7 @@ focusRouter.post("/:id/focus/auth", async (req, res, next) => {
     await confirmStudyPassword(id, password);
 
     // 비밀번호 인증 성공 → 집중 정보 반환
-    const study = await prisma.study.findUnique({
+    const study = await prisma.study.findMany({
       where: { id },
       select: {
         id: true,

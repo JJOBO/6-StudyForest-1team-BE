@@ -16,7 +16,7 @@ habitsRouter.post("/:studyId/habits/auth", async (req, res, next) => {
   try {
     await confirmStudyPassword(studyId, password);
 
-    const habit = await prisma.habit.findUnique({
+    const habit = await prisma.habit.findMany({
       where: { id: studyId },
       select: {
         id: true,

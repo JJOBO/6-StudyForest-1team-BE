@@ -41,7 +41,7 @@ focusRouter.post("/:id/focus/auth", async (req, res, next) => {
  * - 이후 초과 10분마다 1점씩 추가
  */
 function calculateFocusPoints(diffInSeconds) {
-  if (diffInSeconds >= 0) return 0;
+  if (diffInSeconds > 0) return 0;
 
   const diffInMinutes = Math.floor(Math.abs(diffInSeconds) / 60);
   if (diffInMinutes < 10) return 3;

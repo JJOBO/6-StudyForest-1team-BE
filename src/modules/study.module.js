@@ -28,6 +28,28 @@ async function confirmStudyPassword(studyId, password) {
   }
 }
 
+// 스터디 비밀번호
+studyRouter.post("/study/:study_id/auth", async (req, res, next) => {
+  try {
+    const { study_id } = req.params;
+    const { password } = req.body;
+    const id = parseInt(study_id);
+
+    if (isNaN(id) || !password) {
+      const error = new Error("유효하지 않은 요청입니다.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    await confirmStudyPassword(id, password); // ✅ 인증만
+
+    res.json({ success: true }); // 인증 성공만 응답
+  } catch (error) {
+    error.statusCode = error.statusCode || 401;
+    next(error);
+  }
+});
+
 // 스터디 목록 조회, 검색, 정렬, 더보기
 studyRouter.get("/study-list", async (req, res, next) => {
   try {

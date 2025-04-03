@@ -310,6 +310,27 @@ studyRouter.delete("/study/:study_id", async (req, res, next) => {
       throw errorCode;
     }
 
+    // HabitRecord 삭제
+    await prisma.habitRecord.deleteMany({
+      where: {
+        habit: {
+          studyId: id,
+        },
+      },
+    });
+
+    // Habit 삭제
+    await prisma.habit.deleteMany({
+      where: {
+        studyId: id,
+      },
+    });
+
+    // Emoji 삭제
+    await prisma.emoji.deleteMany({
+      where: { studyId: id },
+    });
+
     await prisma.study.delete({ where: { id } });
 
     res.json({ message: "스터디가 삭제되었습니다." });

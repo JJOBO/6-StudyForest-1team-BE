@@ -72,7 +72,15 @@ studyRouter.get("/study-list", async (req, res, next) => {
       throw error;
     }
     // 키워드가 포함된 객체를 검색하여 가져오고 없으면 빈배열을 가져옴
-    const where = keyword ? { name: { contains: keyword } } : {};
+    const where = keyword
+      ? {
+          OR: [
+            { name: { contains: keyword } },
+            { description: { contains: keyword } },
+            { creatorNick: { contains: keyword } },
+          ],
+        }
+      : {};
 
     // 스터디모델에서 정보 가져와서 변수에 할당, 이모지는 추천 많은순으로 3개 가져옴
     const studies = await prisma.study.findMany({

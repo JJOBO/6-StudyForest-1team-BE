@@ -93,7 +93,7 @@ studyRouter.get("/study-list", async (req, res, next) => {
           orderBy: {
             count: "desc",
           },
-          take: 3,
+          
         },
       },
     });

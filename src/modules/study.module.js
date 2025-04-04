@@ -109,7 +109,7 @@ studyRouter.get("/study-list", async (req, res, next) => {
       ? JSON.parse(req.headers.recentstudyids)
       : [];
     
-     // recentStudyIds 함수에 id값이 있으면 스터디 모델에서 해당 객체를 불러옴
+    // recentStudyIds 함수에 id값이 있으면 스터디 모델에서 해당 객체를 불러옴
     const recentStudies = await prisma.study.findMany({
       where: {
         id: {
@@ -129,7 +129,7 @@ studyRouter.get("/study-list", async (req, res, next) => {
         return { ...study, emojis };
       })
     );
-
+    
     res.json({
       studies,
       total,

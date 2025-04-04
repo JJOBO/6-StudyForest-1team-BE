@@ -197,7 +197,7 @@ studyRouter.get("/study/:study_id", async (req, res, next) => {
           orderBy: {
             count: "desc",
           },
-          take: 3,
+          
         },
         habits: true,
       },

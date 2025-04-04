@@ -93,7 +93,7 @@ studyRouter.get("/study-list", async (req, res, next) => {
           orderBy: {
             count: "desc",
           },
-          take: 3
+          take: 3,
         },
       },
     });
@@ -109,19 +109,21 @@ studyRouter.get("/study-list", async (req, res, next) => {
       ? JSON.parse(req.headers.recentstudyids)
       : [];
     
-   // recentStudyIds 함수에 id값이 있으면 스터디 모델에서 해당 객체를 불러옴
+    // recentStudyIds 함수에 id값이 있으면 스터디 모델에서 해당 객체를 불러옴
     const recentStudies = await prisma.study.findMany({
-      where: { id: { in: recentStudyIds } },
-      include: {
-        emojis: {
-          orderBy: { count: "desc" },
+      where: {
+        id: {
+          in: recentStudyIds,
         },
       },
-    });
-    
-    // 이모지 개수 제한 (JavaScript에서 처리)
-    recentStudies.forEach((study) => {
-      study.emojis = study.emojis.slice(0, 3);
+      include: {
+        emojis: {
+          orderBy: {
+            count: "desc",
+          },
+          take: 3,
+        },
+      },
     });
 
     res.json({

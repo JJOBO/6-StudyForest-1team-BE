@@ -108,22 +108,27 @@ studyRouter.get("/study-list", async (req, res, next) => {
     const recentStudyIds = req.headers.recentstudyids
       ? JSON.parse(req.headers.recentstudyids)
       : [];
-    // recentStudyIds 함수에 id값이 있으면 스터디 모델에서 해당 객체를 불러옴
+    
+     // recentStudyIds 함수에 id값이 있으면 스터디 모델에서 해당 객체를 불러옴
     const recentStudies = await prisma.study.findMany({
       where: {
         id: {
           in: recentStudyIds,
         },
       },
-      include: {
-        emojis: {
-          orderBy: {
-            count: "desc",
-          },
-          take: 3
-        },
-      },
     });
+
+    // 각 스터디에 대해 이모지를 가져오고 상위 3개만 필터링
+    const recentStudiesWithEmojis = await Promise.all(
+      recentStudies.map(async (study) => {
+        const emojis = await prisma.emoji.findMany({
+          where: { studyId: study.id },
+          orderBy: { count: "desc" },
+          take: 3,
+        });
+        return { ...study, emojis };
+      })
+    );
 
     res.json({
       studies,

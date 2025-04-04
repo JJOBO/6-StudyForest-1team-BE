@@ -116,19 +116,31 @@ studyRouter.get("/study-list", async (req, res, next) => {
           in: recentStudyIds,
         },
       },
+      include: {
+        emojis: {
+          orderBy: {
+            count: "desc",
+          },
+        },
+      },
     });
 
-    // 각 스터디에 대해 이모지를 가져오고 상위 3개만 필터링
-    const recentStudiesWithEmojis = await Promise.all(
-      recentStudies.map(async (study) => {
-        const emojis = await prisma.emoji.findMany({
-          where: { studyId: study.id },
-          orderBy: { count: "desc" },
-          take: 3,
-        });
-        return { ...study, emojis };
-      })
-    );
+    // 각 스터디에 대해 이모지를 상위 3개만 필터링
+    const recentStudiesWithEmojis = recentStudies.map((study) => ({
+      ...study,
+      emojis: study.emojis.slice(0, 3),
+    }));
+
+    res.json({
+      studies,
+      total,
+      offset: skip,
+      recentStudies: recentStudiesWithEmojis,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
     
     res.json({
       studies,

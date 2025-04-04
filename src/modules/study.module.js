@@ -100,37 +100,11 @@ studyRouter.get("/study-list", async (req, res, next) => {
 
     // where 조건에 포함된 객체의 총 개수를 변수에 할당
     const total = await prisma.study.count({ where });
-
-    /*  스터디 상세 조회 부분에서 res.setHeader 로 클라이언트 헤더에 recentStudyIds[id] 형식의
-    배열값을 보내주고 클라이언트 측에서 recentStudyIds 함수로 최근 스터디 목록을 저장하여 보관
-    */
-
-    const recentStudyIds = req.headers.recentstudyids
-      ? JSON.parse(req.headers.recentstudyids)
-      : [];
     
-    // recentStudyIds 함수에 id값이 있으면 스터디 모델에서 해당 객체를 불러옴
-    const recentStudies = await prisma.study.findMany({
-      where: {
-        id: {
-          in: recentStudyIds,
-        },
-      },
-      include: {
-        emojis: {
-          orderBy: {
-            count: "desc",
-          },
-          take: 3,
-        },
-      },
-    });
-
     res.json({
       studies,
       total,
       offset: skip,
-      recentStudies,
     });
   } catch (error) {
     next(error);

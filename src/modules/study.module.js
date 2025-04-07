@@ -348,6 +348,7 @@ studyRouter.patch("/study/:study_id", async (req, res, next) => {
         name,
         description,
         background,
+        creatorNick,
       },
     });
 

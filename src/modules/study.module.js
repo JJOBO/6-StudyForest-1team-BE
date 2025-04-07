@@ -318,7 +318,7 @@ studyRouter.delete("/study/:study_id", async (req, res, next) => {
 studyRouter.patch("/study/:study_id", async (req, res, next) => {
   try {
     const { study_id } = req.params;
-    const { password, name, description, background } = req.body;
+    const { password, name, description, background, creatorNick } = req.body;
     const id = parseInt(study_id);
 
     if (isNaN(id)) {

@@ -117,9 +117,11 @@ habitsRouter.delete("/habits/:habitId", async (req, res, next) => {
       res.status(200).json(updatedHabit);
     } else {
       await prisma.habitRecord.deleteMany({ where: { habitId } });
-      await prisma.habit.delete({ where: { id: habitId } });
+      const deletedHabit = await prisma.habit.delete({
+        where: { id: habitId },
+      });
 
-      res.status(200).json(updatedHabit);
+      res.status(200).json(deletedHabit);
     }
   } catch (e) {
     next(e);

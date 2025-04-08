@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import express from "express";
 import { confirmStudyPassword } from "./study.module.js";
+import { getWeekRange } from "../utils/getWeekRange.js";
 
 const prisma = new PrismaClient();
 
@@ -48,7 +49,6 @@ habitsRouter.post("/:studyId/habits", async (req, res, next) => {
       data: {
         name,
         studyId,
-        isActive: true,
       },
     });
 
@@ -116,7 +116,6 @@ habitsRouter.delete("/habits/:habitId", async (req, res, next) => {
 
       res.status(200).json(updatedHabit);
     } else {
-      await prisma.habitRecord.deleteMany({ where: { habitId } });
       const deletedHabit = await prisma.habit.delete({
         where: { id: habitId },
       });
@@ -192,18 +191,6 @@ habitsRouter.delete("/habits/:habitId/uncheck", async (req, res, next) => {
     next(e);
   }
 });
-
-// 이번 주의 시작, 끝 날짜 구하는 함수
-function getWeekRange() {
-  const today = new Date();
-  const monday = new Date(today);
-  const sunday = new Date(today);
-  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
-  sunday.setDate(monday.getDate() + 6);
-  monday.setHours(0, 0, 0, 0);
-  sunday.setHours(23, 59, 59, 999);
-  return { monday, sunday };
-}
 
 /**
  * 이번 주 습관 기록 조회

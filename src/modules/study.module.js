@@ -31,9 +31,9 @@ async function confirmStudyPassword(studyId, password) {
 // 스터디 비밀번호
 studyRouter.post("/study/:studyId/auth", async (req, res, next) => {
   try {
-    const { study_id } = req.params;
+    const { studyId } = req.params;
     const { password } = req.body;
-    const id = parseInt(study_id);
+    const id = parseInt(studyId);
 
     if (isNaN(id) || !password) {
       const error = new Error("유효하지 않은 요청입니다.");
@@ -155,8 +155,8 @@ studyRouter.post("/study/registration", async (req, res, next) => {
 // 스터디 상세 조회
 studyRouter.get("/study/:studyId", async (req, res, next) => {
   try {
-    const { study_id } = req.params;
-    const id = parseInt(study_id);
+    const { studyId } = req.params;
+    const id = parseInt(studyId);
     // id값 형태 검증
     if (isNaN(id)) {
       const error = new Error("페이지를 찾을 수 없습니다. URL을 확인해주세요.");
@@ -191,9 +191,9 @@ studyRouter.get("/study/:studyId", async (req, res, next) => {
 // 스터디에 이모지 추가
 studyRouter.post("/study/:studyId/emoji", async (req, res, next) => {
   try {
-    const { study_id } = req.params;
+    const { studyId } = req.params;
     const { emoji } = req.body;
-    const id = parseInt(study_id);
+    const id = parseInt(studyId);
 
     if (isNaN(id)) {
       const error = new Error("유효하지 않은 요청입니다.");
@@ -249,9 +249,9 @@ studyRouter.post("/study/:studyId/emoji", async (req, res, next) => {
 // 스터디 삭제
 studyRouter.delete("/study/:studyId", async (req, res, next) => {
   try {
-    const { study_id } = req.params;
+    const { studyId } = req.params;
     const { password } = req.body;
-    const id = parseInt(study_id);
+    const id = parseInt(studyId);
 
     if (isNaN(id)) {
       const error = new Error("페이지를 찾을 수 없습니다. URL을 확인해주세요.");
@@ -301,9 +301,9 @@ studyRouter.delete("/study/:studyId", async (req, res, next) => {
 // 스터디 수정
 studyRouter.patch("/study/:studyId", async (req, res, next) => {
   try {
-    const { study_id } = req.params;
+    const { studyId } = req.params;
     const { password, name, description, background, creatorNick } = req.body;
-    const id = parseInt(study_id);
+    const id = parseInt(studyId);
 
     if (isNaN(id)) {
       const error = new Error("페이지를 찾을 수 없습니다. URL을 확인해주세요.");

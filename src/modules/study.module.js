@@ -29,7 +29,7 @@ async function confirmStudyPassword(studyId, password) {
 }
 
 // 스터디 비밀번호
-studyRouter.post("/study/:study_id/auth", async (req, res, next) => {
+studyRouter.post("/study/:studyId/auth", async (req, res, next) => {
   try {
     const { study_id } = req.params;
     const { password } = req.body;
@@ -100,7 +100,7 @@ studyRouter.get("/study-list", async (req, res, next) => {
 
     // where 조건에 포함된 객체의 총 개수를 변수에 할당
     const total = await prisma.study.count({ where });
-    
+
     res.json({
       studies,
       total,
@@ -153,7 +153,7 @@ studyRouter.post("/study/registration", async (req, res, next) => {
 });
 
 // 스터디 상세 조회
-studyRouter.get("/study/:study_id", async (req, res, next) => {
+studyRouter.get("/study/:studyId", async (req, res, next) => {
   try {
     const { study_id } = req.params;
     const id = parseInt(study_id);
@@ -171,7 +171,6 @@ studyRouter.get("/study/:study_id", async (req, res, next) => {
           orderBy: {
             count: "desc",
           },
-          
         },
         habits: true,
       },
@@ -183,21 +182,6 @@ studyRouter.get("/study/:study_id", async (req, res, next) => {
       throw error;
     }
 
-    const recentStudyIds = req.headers.recentstudyids
-      ? JSON.parse(req.headers.recentstudyids)
-      : [];
-
-    /* 사용자가 입력할 id값과 recentStudyIds에 존재하는 각각의 studyId를 비교하여 중복을 제거한 이후
-      updatedRecentStudyIds 배열에 3개의 값만 남김   */
-
-    const updatedRecentStudyIds = [
-      id,
-      ...recentStudyIds.filter((studyId) => studyId !== id),
-    ].slice(0, 3);
-
-    // 리스폰스 헤더값에 recentStudyIds[5] 이런식의 최근 조회 목록 id 배열값을 반환함
-    res.setHeader("recentStudyIds", JSON.stringify(updatedRecentStudyIds));
-
     res.json(study);
   } catch (error) {
     next(error);
@@ -205,7 +189,7 @@ studyRouter.get("/study/:study_id", async (req, res, next) => {
 });
 
 // 스터디에 이모지 추가
-studyRouter.post("/study/:study_id/emoji", async (req, res, next) => {
+studyRouter.post("/study/:studyId/emoji", async (req, res, next) => {
   try {
     const { study_id } = req.params;
     const { emoji } = req.body;
@@ -263,7 +247,7 @@ studyRouter.post("/study/:study_id/emoji", async (req, res, next) => {
 });
 
 // 스터디 삭제
-studyRouter.delete("/study/:study_id", async (req, res, next) => {
+studyRouter.delete("/study/:studyId", async (req, res, next) => {
   try {
     const { study_id } = req.params;
     const { password } = req.body;
@@ -315,7 +299,7 @@ studyRouter.delete("/study/:study_id", async (req, res, next) => {
 });
 
 // 스터디 수정
-studyRouter.patch("/study/:study_id", async (req, res, next) => {
+studyRouter.patch("/study/:studyId", async (req, res, next) => {
   try {
     const { study_id } = req.params;
     const { password, name, description, background, creatorNick } = req.body;

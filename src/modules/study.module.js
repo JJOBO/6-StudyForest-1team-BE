@@ -340,3 +340,6 @@ studyRouter.patch("/study/:studyId", async (req, res, next) => {
     next(error);
   }
 });
+
+export { confirmStudyPassword as confirmStudyPassword };
+export default studyRouter;

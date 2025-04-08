@@ -5,6 +5,7 @@ import { confirmStudyPassword } from "./study.module.js";
 const prisma = new PrismaClient();
 const focusRouter = express.Router();
 
+// TODO: ":id"가 무슨 id인지 알 수 없음. 보다 명시적인 이름을 사용하자. studyId
 focusRouter.post("/:id/focus/auth", async (req, res, next) => {
   const id = Number(req.params.id);
   const { password } = req.body;

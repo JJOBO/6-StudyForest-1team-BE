@@ -29,6 +29,7 @@ async function confirmStudyPassword(studyId, password) {
 }
 
 // 스터디 비밀번호
+// TODO: study_id 네이밍 컨벤션 문제
 studyRouter.post("/study/:study_id/auth", async (req, res, next) => {
   try {
     const { study_id } = req.params;
@@ -100,7 +101,7 @@ studyRouter.get("/study-list", async (req, res, next) => {
 
     // where 조건에 포함된 객체의 총 개수를 변수에 할당
     const total = await prisma.study.count({ where });
-    
+
     res.json({
       studies,
       total,
@@ -152,6 +153,8 @@ studyRouter.post("/study/registration", async (req, res, next) => {
   }
 });
 
+// TODO: recentStudyIds를 header와 연결해서 사용하는 거 전부 제거
+
 // 스터디 상세 조회
 studyRouter.get("/study/:study_id", async (req, res, next) => {
   try {
@@ -171,7 +174,6 @@ studyRouter.get("/study/:study_id", async (req, res, next) => {
           orderBy: {
             count: "desc",
           },
-          
         },
         habits: true,
       },
@@ -284,28 +286,6 @@ studyRouter.delete("/study/:study_id", async (req, res, next) => {
       errorCode.statusCode = 404;
       throw errorCode;
     }
-
-    // HabitRecord 삭제
-    await prisma.habitRecord.deleteMany({
-      where: {
-        habit: {
-          studyId: id,
-        },
-      },
-    });
-
-    // Habit 삭제
-    await prisma.habit.deleteMany({
-      where: {
-        studyId: id,
-      },
-    });
-
-    // Emoji 삭제
-    await prisma.emoji.deleteMany({
-      where: { studyId: id },
-    });
-
     await prisma.study.delete({ where: { id } });
 
     res.json({ message: "스터디가 삭제되었습니다." });

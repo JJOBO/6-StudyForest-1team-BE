@@ -27,7 +27,7 @@ habitsRouter.post("/:studyId/habits/auth", async (req, res, next) => {
     });
 
     if (!habit) {
-      return res.status(400).json({ message: "비밀번호가 일치하지 않습니다." });
+      return res.status(400).json({ message: "비밀번호가 일치하지 않습니다." }); // TODO: 습관이 존재하지 않는다는 에러메시지가 맞다
     }
 
     res.json(habit);
@@ -48,7 +48,7 @@ habitsRouter.post("/:studyId/habits", async (req, res, next) => {
       data: {
         name,
         studyId,
-        isActive: true,
+        isActive: true, // TODO: 스키마에 이미 default true로 되어 있으니 쓸 필요 없음
       },
     });
 
@@ -116,7 +116,7 @@ habitsRouter.delete("/habits/:habitId", async (req, res, next) => {
 
       res.status(200).json(updatedHabit);
     } else {
-      await prisma.habitRecord.deleteMany({ where: { habitId } });
+      await prisma.habitRecord.deleteMany({ where: { habitId } }); // TODO: 레코드가 없는 조건으로 들어왔는데 레코드를 삭제한다는 코드가 있음.
       const deletedHabit = await prisma.habit.delete({
         where: { id: habitId },
       });
@@ -194,6 +194,7 @@ habitsRouter.delete("/habits/:habitId/uncheck", async (req, res, next) => {
 });
 
 // 이번 주의 시작, 끝 날짜 구하는 함수
+// TODO: utils 함수로 따로 빼는 게 더 좋다
 function getWeekRange() {
   const today = new Date();
   const monday = new Date(today);

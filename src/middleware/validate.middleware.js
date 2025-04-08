@@ -1,3 +1,4 @@
+// TODO: 안 쓰는 코드 삭제~
 const validateStudyCreation = (req, res, next) => {
   const { name, password, passwordConfirm, creatorNick } = req.body;
   if (!name || !password || !passwordConfirm || !creatorNick) {

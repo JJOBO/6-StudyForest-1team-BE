@@ -1,5 +1,6 @@
 import { confirmPassword } from "../modules/study.module";
 
+// TODO: 안 쓰는 코드 삭제해 주세요~
 const authentication = async (req, res, next) => {
   const { studyId } = req.params;
   const { password } = req.body;

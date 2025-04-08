@@ -37,7 +37,7 @@ model Habit {
 model HabitRecord {
   id         Int    @id @default(autoincrement())
   habitId    Int
-  habit      Habit  @relation(fields: [habitId], references: [id])
+  habit      Habit  @relation(fields: [habitId], references: [id], onDelete: Cascade)
   recordDate String
 }
 
@@ -46,5 +46,5 @@ model Emoji {
   studyId Int
   emoji   String
   count   Int    @default(0)
-  study   Study  @relation(fields: [studyId], references: [id])
+  study   Study  @relation(fields: [studyId], references: [id], onDelete: Cascade) // TODO: onDelete: Cascade 사용해 주세요~
 }

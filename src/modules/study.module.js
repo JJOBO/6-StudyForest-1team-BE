@@ -1,4 +1,3 @@
-// src/controllers/studyController.js
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import express from "express";
@@ -106,52 +105,6 @@ studyRouter.get("/study-list", async (req, res, next) => {
       total,
       offset: skip,
     });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// 최근조회 스터디 ID를 받아 상세 정보 반환
-studyRouter.post("/recentstudy-list", async (req, res, next) => {
-  try {
-    const { studyIds } = req.body;
-
-    // studyIds 유효성 검사 (배열인지, 비어있지 않은지)
-    if (!Array.isArray(studyIds)) {
-      const error = new Error(" studyIds 배열이 필요합니다.");
-      error.statusCode = 400;
-      throw error;
-    }
-
-    if (studyIds.length === 0) {
-      // 빈 배열이 오면 빈 결과를 반환
-      return res.json([]);
-    }
-
-    // studyIds 배열에 포함된 ID를 가진 스터디들을 조회
-    const studies = await prisma.study.findMany({
-      where: {
-        id: {
-          in: studyIds,
-        },
-      },
-      include: {
-        emojis: {
-          orderBy: {
-            count: "desc", // 이모지는 카운트 순으로 정렬
-          },
-          take: 3,
-        },
-      },
-    });
-
-    // 중요: 로컬 스토리지 순서(최신순)를 유지하기 위해 결과를 재정렬
-    // 입력받은 studyIds 배열의 순서대로 결과를 정렬
-    const orderedStudies = studyIds
-      .map((id) => studies.find((study) => study.id === id)) // studyIds 순서대로 찾아서 매핑
-      .filter((study) => study !== undefined); // find에서 못 찾은 경우(삭제된 스터디 등) undefined가 될 수 있으므로 필터링
-
-    res.json(orderedStudies); // 정렬된 스터디 상세 정보 배열을 응답으로 보냄냄
   } catch (error) {
     next(error);
   }
@@ -387,6 +340,3 @@ studyRouter.patch("/study/:studyId", async (req, res, next) => {
     next(error);
   }
 });
-
-export { confirmStudyPassword as confirmStudyPassword };
-export default studyRouter;

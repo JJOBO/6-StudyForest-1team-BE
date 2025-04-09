@@ -28,7 +28,7 @@ habitsRouter.post("/:studyId/habits/auth", async (req, res, next) => {
     });
 
     if (!habit) {
-      return res.status(400).json({ message: "비밀번호가 일치하지 않습니다." });
+      return res.status(400).json({ message: "존재하지않는 습관입니다" });
     }
 
     res.json(habit);
@@ -246,6 +246,86 @@ habitsRouter.get("/:studyId/habits/week", async (req, res, next) => {
     });
 
     res.status(200).json(result);
+  } catch (e) {
+    next(e);
+  }
+});
+
+/**
+ * 통합 데이터 조회: 습관기록, 이번주 기록, 스터디정보
+ */
+habitsRouter.get("/:studyId/habits/dashboard", async (req, res, next) => {
+  const studyId = Number(req.params.studyId);
+
+  try {
+    // 스터디 정보 조회
+    const studyInfo = await prisma.study.findUnique({
+      where: { id: studyId },
+      select: {
+        id: true,
+        name: true,
+        creatorNick: true,
+      },
+    });
+
+    if (!studyInfo) {
+      return res.status(404).json({ message: "존재하지 않는 스터디입니다" });
+    }
+
+    // 습관 목록 조회
+    const habits = await prisma.habit.findMany({
+      where: { studyId },
+    });
+
+    // 이번 주 습관 기록 조회
+    const { monday, sunday } = getWeekRange();
+
+    const records = await prisma.habitRecord.findMany({
+      where: {
+        habitId: {
+          in: habits.map((habit) => habit.id),
+        },
+        recordDate: {
+          gte: monday.toISOString().split("T")[0],
+          lte: sunday.toISOString().split("T")[0],
+        },
+      },
+    });
+
+    // 날싸 배열 (월~일)
+    const week = [...Array(7)].map((_, i) => {
+      const date = new Date(monday);
+      date.setDate(date.getDate() + i);
+      return date.toISOString().slice(0, 10);
+    });
+
+    // 습관별 기록 매핑
+    const habitRecord = habits.map((habit) => {
+      const habitRecords = records
+        .filter((record) => record.habitId === habit.id)
+        .map((record) =>
+          new Date(record.recordDate).toISOString().slice(0, 10)
+        );
+
+      const recordsForWeek = week.map((date) => habitRecords.includes(date));
+
+      return {
+        habitId: habit.id,
+        name: habit.name,
+        records: recordsForWeek,
+      };
+    });
+
+    // 통합 데이터 응답
+    res.status(200).json({
+      studyInfo: {
+        id: studyInfo.id,
+        name: studyInfo.name,
+        creatorNick: studyInfo.creatorNick, 
+      },
+      habits: habits,
+      weeklyRecords: habitRecord,
+    });
   } catch (e) {
     next(e);
   }

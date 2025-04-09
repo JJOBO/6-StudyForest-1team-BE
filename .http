@@ -215,7 +215,7 @@ DELETE  http://localhost:5004/study/habits/3/uncheck
 GET http://localhost:5004/study/134/habits/week
 
 ### 통합 데이터 조회
-GET http://localhost:5004/study/99/habits/dashboard
+GET http://localhost:5004/study/127/habits/dashboard
 
 //오류 체크
 

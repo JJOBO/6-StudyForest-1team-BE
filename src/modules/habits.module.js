@@ -274,7 +274,7 @@ habitsRouter.get("/:studyId/habits/dashboard", async (req, res, next) => {
 
     // 습관 목록 조회
     const habits = await prisma.habit.findMany({
-      where: { studyId },
+      where: { studyId, isActive: true },
     });
 
     // 이번 주 습관 기록 조회
@@ -321,7 +321,7 @@ habitsRouter.get("/:studyId/habits/dashboard", async (req, res, next) => {
       studyInfo: {
         id: studyInfo.id,
         name: studyInfo.name,
-        creatorNick: studyInfo.creatorNick, 
+        creatorNick: studyInfo.creatorNick,
       },
       habits: habits,
       weeklyRecords: habitRecord,

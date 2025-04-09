@@ -5,17 +5,18 @@ import { confirmStudyPassword } from "./study.module.js";
 const prisma = new PrismaClient();
 const focusRouter = express.Router();
 
-focusRouter.post("/:id/focus/auth", async (req, res, next) => {
-  const id = Number(req.params.id);
+// 비밀번호 인증 API
+focusRouter.post("/:studyId/focus/auth", async (req, res, next) => {
+  const studyId = Number(req.params.studyId);
   const { password } = req.body;
 
   try {
     // 함수로 비밀번호 확인
-    await confirmStudyPassword(id, password);
+    await confirmStudyPassword(studyId, password);
 
     // 비밀번호 인증 성공 → 집중 정보 반환
     const study = await prisma.study.findMany({
-      where: { id },
+      where: { id: studyId },
       select: {
         id: true,
         focusStartTime: true,
@@ -35,10 +36,9 @@ focusRouter.post("/:id/focus/auth", async (req, res, next) => {
     next(e);
   }
 });
+
 /**
  * 포인트 계산 함수
- * - 목표시간 도달 시 3점
- * - 이후 초과 10분마다 1점씩 추가
  */
 function calculateFocusPoints(diffInSeconds) {
   if (diffInSeconds > 0) return 0;
@@ -52,9 +52,9 @@ function calculateFocusPoints(diffInSeconds) {
 /**
  * 오늘의 집중 시작
  */
-focusRouter.post("/:id/focus", async (req, res, next) => {
+focusRouter.post("/:studyId/focus", async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { studyId } = req.params;
     const { targetTime } = req.body;
 
     if (!targetTime || targetTime <= 0) {
@@ -64,7 +64,7 @@ focusRouter.post("/:id/focus", async (req, res, next) => {
     }
 
     await prisma.study.update({
-      where: { id: Number(id) },
+      where: { id: Number(studyId) },
       data: {
         focusStartTime: new Date(),
         focusTargetTime: targetTime,
@@ -80,13 +80,13 @@ focusRouter.post("/:id/focus", async (req, res, next) => {
 /**
  * 오늘의 집중 종료
  */
-focusRouter.put("/:id/focus", async (req, res, next) => {
+focusRouter.put("/:studyId/focus", async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { studyId } = req.params;
     const { elapsedTime } = req.body;
 
     const focusStudy = await prisma.study.findUnique({
-      where: { id: Number(id) },
+      where: { id: Number(studyId) },
     });
 
     if (
@@ -105,7 +105,7 @@ focusRouter.put("/:id/focus", async (req, res, next) => {
     const focusPoints = calculateFocusPoints(timeDifference);
 
     const updatedStudy = await prisma.study.update({
-      where: { id: parseInt(id) },
+      where: { id: parseInt(studyId) },
       data: {
         totalPoints: totalPoints + focusPoints,
         focusStartTime: null,

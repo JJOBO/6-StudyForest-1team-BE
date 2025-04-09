@@ -1,4 +1,3 @@
-// src/controllers/studyController.js
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import express from "express";
@@ -7,25 +6,51 @@ const prisma = new PrismaClient();
 const studyRouter = express.Router();
 
 // 인증 함수를 별도로 분리
-async function confirmPassword(studyId, password) {
+async function confirmStudyPassword(studyId, password) {
   const study = await prisma.study.findUnique({
     where: { id: studyId },
     select: { passwordHash: true },
   });
 
   if (!study) {
-    throw new Error("스터디를 찾을 수 없습니다.");
+    const error = new Error("스터디를 찾을 수 없습니다.");
+    error.statusCode = 404;
+    throw error;
   }
 
   const isValid = await bcrypt.compare(password, study.passwordHash);
 
   if (!isValid) {
-    throw new Error("비밀번호가 일치하지 않습니다.");
+    const error = new Error("비밀번호가 일치하지 않습니다.");
+    error.statusCode = 401;
+    throw error;
   }
 }
 
+// 스터디 비밀번호
+studyRouter.post("/study/:studyId/auth", async (req, res, next) => {
+  try {
+    const { studyId } = req.params;
+    const { password } = req.body;
+    const id = parseInt(studyId);
+
+    if (isNaN(id) || !password) {
+      const error = new Error("유효하지 않은 요청입니다.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    await confirmStudyPassword(id, password); // ✅ 인증만
+
+    res.json({ success: true }); // 인증 성공만 응답
+  } catch (error) {
+    error.statusCode = error.statusCode || 401;
+    next(error);
+  }
+});
+
 // 스터디 목록 조회, 검색, 정렬, 더보기
-studyRouter.get("/study-list", async (req, res) => {
+studyRouter.get("/study-list", async (req, res, next) => {
   try {
     const { keyword, order = "createdAt", offset = 0 } = req.query;
     const take = 6; // 6개 목록씩 가져옴
@@ -41,12 +66,20 @@ studyRouter.get("/study-list", async (req, res) => {
     } else if (order === "totalPointsAsc") {
       orderBy.totalPoints = "asc";
     } else {
-      return res.status(400).json({
-        message: "유효하지 않은 요청입니다.",
-      });
+      const error = new Error("유효하지 않은 정렬 기준입니다.");
+      error.statusCode = 400;
+      throw error;
     }
     // 키워드가 포함된 객체를 검색하여 가져오고 없으면 빈배열을 가져옴
-    const where = keyword ? { name: { contains: keyword } } : {};
+    const where = keyword
+      ? {
+          OR: [
+            { name: { contains: keyword } },
+            { description: { contains: keyword } },
+            { creatorNick: { contains: keyword } },
+          ],
+        }
+      : {};
 
     // 스터디모델에서 정보 가져와서 변수에 할당, 이모지는 추천 많은순으로 3개 가져옴
     const studies = await prisma.study.findMany({
@@ -67,46 +100,18 @@ studyRouter.get("/study-list", async (req, res) => {
     // where 조건에 포함된 객체의 총 개수를 변수에 할당
     const total = await prisma.study.count({ where });
 
-    /*  스터디 상세 조회 부분에서 res.setHeader 로 클라이언트 헤더에 recentStudyIds[id] 형식의
-    배열값을 보내주고 클라이언트 측에서 recentStudyIds 함수로 최근 스터디 목록을 저장하여 보관
-    */
-
-    const recentStudyIds = req.headers.recentstudyids
-      ? JSON.parse(req.headers.recentstudyids)
-      : [];
-    // recentStudyIds 함수에 id값이 있으면 스터디 모델에서 해당 객체를 불러옴
-    const recentStudies = await prisma.study.findMany({
-      where: {
-        id: {
-          in: recentStudyIds,
-        },
-      },
-      include: {
-        emojis: {
-          orderBy: {
-            count: "desc",
-          },
-          take: 3,
-        },
-      },
-    });
-
     res.json({
       studies,
       total,
       offset: skip,
-      recentStudies,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
-    });
+    next(error);
   }
 });
 
 // 스터디 생성
-studyRouter.post("/study/registration", async (req, res) => {
+studyRouter.post("/study/registration", async (req, res, next) => {
   try {
     const {
       name,
@@ -118,12 +123,14 @@ studyRouter.post("/study/registration", async (req, res) => {
     } = req.body;
 
     if (!name || !password || !passwordConfirm || !creatorNick) {
-      return res.status(400).json({ message: "유효하지 않은 요청입니다." });
+      const error = new Error("필수 입력값이 누락되었습니다.");
+      error.statusCode = 400;
+      throw error;
     }
     if (password !== passwordConfirm) {
-      return res.status(401).json({
-        message: "인증되지 않았습니다. 올바른 인증 정보를 입력해주세요.",
-      });
+      const error = new Error("비밀번호가 일치하지 않습니다.");
+      error.statusCode = 400;
+      throw error;
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -140,23 +147,20 @@ studyRouter.post("/study/registration", async (req, res) => {
 
     res.status(201).json(study);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
-    });
+    next(error);
   }
 });
 
 // 스터디 상세 조회
-studyRouter.get("/study/:study_id", async (req, res) => {
+studyRouter.get("/study/:studyId", async (req, res, next) => {
   try {
-    const { study_id } = req.params;
-    const id = parseInt(study_id);
+    const { studyId } = req.params;
+    const id = parseInt(studyId);
     // id값 형태 검증
     if (isNaN(id)) {
-      return res.status(404).json({
-        message: "페이지를 찾을 수 없습니다. URL을 확인해주세요.",
-      });
+      const error = new Error("페이지를 찾을 수 없습니다. URL을 확인해주세요.");
+      error.statusCode = 404;
+      throw error;
     }
 
     const study = await prisma.study.findUnique({
@@ -166,55 +170,40 @@ studyRouter.get("/study/:study_id", async (req, res) => {
           orderBy: {
             count: "desc",
           },
-          take: 3,
         },
         habits: true,
       },
     });
     // id값 유무 검증
     if (!study) {
-      return res.status(404).json({
-        message: "페이지를 찾을 수 없습니다. URL을 확인해주세요.",
-      });
+      const error = new Error("페이지를 찾을 수 없습니다. URL을 확인해주세요.");
+      error.statusCode = 404;
+      throw error;
     }
-
-    const recentStudyIds = req.headers.recentstudyids
-      ? JSON.parse(req.headers.recentstudyids)
-      : [];
-
-    /* 사용자가 입력할 id값과 recentStudyIds에 존재하는 각각의 studyId를 비교하여 중복을 제거한 이후
-      updatedRecentStudyIds 배열에 3개의 값만 남김   */
-
-    const updatedRecentStudyIds = [
-      id,
-      ...recentStudyIds.filter((studyId) => studyId !== id),
-    ].slice(0, 3);
-
-    // 리스폰스 헤더값에 recentStudyIds[5] 이런식의 최근 조회 목록 id 배열값을 반환함
-    res.setHeader("recentStudyIds", JSON.stringify(updatedRecentStudyIds));
 
     res.json(study);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
-    });
+    next(error);
   }
 });
 
 // 스터디에 이모지 추가
-studyRouter.post("/study/:study_id/emoji", async (req, res) => {
+studyRouter.post("/study/:studyId/emoji", async (req, res, next) => {
   try {
-    const { study_id } = req.params;
+    const { studyId } = req.params;
     const { emoji } = req.body;
-    const id = parseInt(study_id);
+    const id = parseInt(studyId);
 
     if (isNaN(id)) {
-      return res.status(400).json({ message: "유효하지 않은 요청입니다." });
+      const error = new Error("유효하지 않은 요청입니다.");
+      error.statusCode = 400;
+      throw error;
     }
 
     if (!emoji) {
-      return res.status(400).json({ message: "유효하지 않은 요청입니다." });
+      const error = new Error("유효하지 않은 요청입니다.");
+      error.statusCode = 400;
+      throw error;
     }
 
     const study = await prisma.study.findUnique({
@@ -222,9 +211,9 @@ studyRouter.post("/study/:study_id/emoji", async (req, res) => {
     });
 
     if (!study) {
-      return res
-        .status(404)
-        .json({ message: "페이지를 찾을 수 없습니다. URL을 확인해주세요." });
+      const error = new Error("페이지를 찾을 수 없습니다. URL을 확인해주세요.");
+      error.statusCode = 404;
+      throw error;
     }
 
     const existingEmoji = await prisma.emoji.findFirst({
@@ -252,67 +241,88 @@ studyRouter.post("/study/:study_id/emoji", async (req, res) => {
 
     res.status(200).json({ message: "이모지가 성공적으로 추가되었습니다." });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
-    });
+    next(error);
   }
 });
 
 // 스터디 삭제
-studyRouter.delete("/study/:study_id", async (req, res) => {
+studyRouter.delete("/study/:studyId", async (req, res, next) => {
   try {
-    const { study_id } = req.params;
+    const { studyId } = req.params;
     const { password } = req.body;
-    const id = parseInt(study_id);
+    const id = parseInt(studyId);
 
     if (isNaN(id)) {
-      return res.status(404).json({
-        message: "페이지를 찾을 수 없습니다. URL을 확인해주세요.",
-      });
+      const error = new Error("페이지를 찾을 수 없습니다. URL을 확인해주세요.");
+      error.statusCode = 404;
+      throw error;
     }
 
     try {
-      await confirmPassword(id, password);
+      await confirmStudyPassword(id, password);
     } catch (error) {
-      return res.status(401).json({
-        message: "인증되지 않았습니다. 올바른 인증 정보를 입력해주세요.",
-      });
+      const errorCode = new Error(
+        "인증되지 않았습니다. 올바른 인증 정보를 입력해주세요."
+      );
+      errorCode.statusCode = 404;
+      throw errorCode;
     }
+
+    // HabitRecord 삭제
+    await prisma.habitRecord.deleteMany({
+      where: {
+        habit: {
+          studyId: id,
+        },
+      },
+    });
+
+    // Habit 삭제
+    await prisma.habit.deleteMany({
+      where: {
+        studyId: id,
+      },
+    });
+
+    // Emoji 삭제
+    await prisma.emoji.deleteMany({
+      where: { studyId: id },
+    });
 
     await prisma.study.delete({ where: { id } });
 
     res.json({ message: "스터디가 삭제되었습니다." });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
-    });
+    next(error);
   }
 });
 
 // 스터디 수정
-studyRouter.patch("/study/:study_id", async (req, res) => {
+studyRouter.patch("/study/:studyId", async (req, res, next) => {
   try {
-    const { study_id } = req.params;
-    const { password, name, description, background } = req.body;
-    const id = parseInt(study_id);
+    const { studyId } = req.params;
+    const { password, name, description, background, creatorNick } = req.body;
+    const id = parseInt(studyId);
 
     if (isNaN(id)) {
-      return res.status(404).json({
-        message: "페이지를 찾을 수 없습니다. URL을 확인해주세요.",
-      });
+      const error = new Error("페이지를 찾을 수 없습니다. URL을 확인해주세요.");
+      error.statusCode = 404;
+      throw error;
     }
     if (!password) {
-      return res.status(400).json({ message: "유효하지 않은 요청입니다." });
+      const error = new Error("유효하지 않은 요청입니다.");
+      error.statusCode = 400;
+      throw error;
     }
 
     try {
-      await confirmPassword(id, password);
+      await confirmStudyPassword(id, password);
     } catch (error) {
-      return res.status(401).json({
-        message: "인증되지 않았습니다. 올바른 인증 정보를 입력해주세요.",
-      });
+      const errorCode = new Error(
+        "인증되지 않았습니다. 올바른 인증 정보를 입력해주세요."
+      );
+      error.statusCode = 401;
+      throw errorCode;
     }
 
     const updatedStudy = await prisma.study.update({
@@ -327,12 +337,9 @@ studyRouter.patch("/study/:study_id", async (req, res) => {
 
     res.json(updatedStudy);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
-    });
+    next(error);
   }
 });
 
-export { confirmPassword };
+export { confirmStudyPassword as confirmStudyPassword };
 export default studyRouter;

@@ -3,7 +3,6 @@
 GET http://localhost:5000/study-list?keyword=새로운&order=createdAt&offset=0
 
 
-
 ### 스터디 목록 조회 (기본 정렬 및 오프셋)
 # 정렬 기준과 오프셋을 지정하지 않으면 기본값(최신순, 0번째부터)으로 스터디 목록을 가져옵니다.
 GET http://localhost:5000/study-list
@@ -153,7 +152,7 @@ Content-Type: application/json
 }
 
 ### 집중 인증 조회
-POST http://localhost:5002/studies/8/focus/auth
+POST http://localhost:5000/studies/8/focus/auth
 Content-Type: application/json
 
 {
@@ -161,7 +160,7 @@ Content-Type: application/json
 }
 
 ### 집중 시작
-POST http://localhost:5002/studies/8/focus
+POST http://localhost:5000/studies/8/focus
 Content-Type: application/json
 
 {
@@ -169,11 +168,19 @@ Content-Type: application/json
 }
 
 ### 집중 종료
-PUT http://localhost:5002/studies/8/focus
+PUT http://localhost:5000/studies/8/focus
 Content-Type: application/json
 
 {
   "elapsedTime": 2130
+}
+
+### 오늘의 습관 비밀번호 인증
+POST http://localhost:5000/study/1/habits/auth
+Content-Type: application/json
+
+{
+  "password": "안전한비밀번호123"
 }
 
 ### 오늘의 습관 생성
@@ -206,3 +213,68 @@ DELETE  http://localhost:2020/study/habits/3/uncheck
 
 ### 주간 습관 조회
 GET http://localhost:2020/study/2/habits/week
+
+
+//오류 체크
+
+### 1. 필수 입력값 누락 (스터디 생성)
+POST http://localhost:5000/study/registration
+Content-Type: application/json
+
+{
+  "name": "스터디 이름",
+  "password": "password123"
+}
+
+### 2. 비밀번호 불일치 (스터디 생성)
+POST http://localhost:5000/study/registration
+Content-Type: application/json
+
+{
+  "name": "스터디 이름",
+  "password": "password123",
+  "passwordConfirm": "wrongpassword",
+  "creatorNick": "닉네임"
+}
+
+### 3. 유효하지 않은 정렬 기준 (스터디 목록 조회)
+GET http://localhost:5000/study-list?order=invalidOrder
+
+### 4. 유효하지 않은 스터디 ID (스터디 상세 조회)
+GET http://localhost:5000/study/999999
+
+### 5. 비밀번호 누락 (스터디 삭제)
+DELETE http://localhost:5000/study/1
+Content-Type: application/json
+
+{}
+
+### 6. 잘못된 비밀번호 (스터디 삭제)
+DELETE http://localhost:5000/study/1
+Content-Type: application/json
+
+{
+  "password": "wrongpassword"
+}
+
+### 7. 유효하지 않은 요청 데이터 (스터디 수정)
+PATCH http://localhost:5000/study/1
+Content-Type: application/json
+
+{
+  "name": "수정된 스터디 이름"
+}
+
+### 8. 유효하지 않은 스터디 ID (이모지 추가)
+POST http://localhost:5000/study/999999/emoji
+Content-Type: application/json
+
+{
+  "emoji": "👍"
+}
+
+### 9. 이모지 데이터 누락 (이모지 추가)
+POST http://localhost:5000/study/1/emoji
+Content-Type: application/json
+
+{}

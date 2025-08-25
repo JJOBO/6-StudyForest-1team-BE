@@ -5,6 +5,15 @@ import express from "express";
 const prisma = new PrismaClient();
 const studyRouter = express.Router();
 
+async function syncStudySequence(prisma) {
+  // 테이블에 행이 있으면 max(id)+1이 다음 값이 되도록 setval
+  await prisma.$executeRawUnsafe(
+    `SELECT setval('"Study_id_seq"',
+                   COALESCE((SELECT MAX(id) FROM "Study"), 1),
+                   (SELECT COUNT(*)>0 FROM "Study"));`
+  );
+}
+
 // 인증 함수를 별도로 분리
 async function confirmStudyPassword(studyId, password) {
   const study = await prisma.study.findUnique({
@@ -111,6 +120,7 @@ studyRouter.get("/study-list", async (req, res, next) => {
 });
 
 // 스터디 생성
+// 기존 등록 라우트 교체
 studyRouter.post("/study/registration", async (req, res, next) => {
   try {
     const {
@@ -134,22 +144,32 @@ studyRouter.post("/study/registration", async (req, res, next) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const createData = {
+      name,
+      description,
+      background,
+      passwordHash: hashedPassword,
+      creatorNick,
+    };
 
-    const study = await prisma.study.create({
-      data: {
-        name,
-        description,
-        background,
-        passwordHash: hashedPassword,
-        creatorNick,
-      },
-    });
-
-    res.status(201).json(study);
+    // 1차 시도
+    try {
+      const study = await prisma.study.create({ data: createData });
+      return res.status(201).json(study);
+    } catch (e) {
+      // 시퀀스가 뒤쳐져서 id 중복 나는 케이스만 한 번 자동 복구 후 재시도
+      if (e.code === "P2002" && e.meta?.target?.includes("id")) {
+        await syncStudySequence(prisma);
+        const study = await prisma.study.create({ data: createData });
+        return res.status(201).json(study);
+      }
+      throw e; // 다른 에러는 그대로 미들웨어로
+    }
   } catch (error) {
     next(error);
   }
 });
+
 
 // 스터디 상세 조회
 studyRouter.get("/study/:studyId", async (req, res, next) => {
